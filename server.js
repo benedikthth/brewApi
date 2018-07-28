@@ -62,8 +62,7 @@ app.get('/temperature', function(req, res){
         //[time, dtime, dateString, temperature];
         let o = {
             dtime: row[1],
-            dateString: row[2],
-            temperature: row[3]
+            temperature: row[2]
         }
         data.push (o);
       });
