@@ -56,10 +56,16 @@ app.get('/temperature', function(req, res){
 
     //max 144 rows. this means that we'll only get 3days worth of data
     var stream = ch.query (`SELECT * FROM ${brewApiTemperatures} order by dtime desc limit 144`);
-    let rows = [];
+    let data = [];
     
     stream.on ('data', function (row) {
-        rows.push (row);
+        //[time, dtime, dateString, temperature];
+        let o = {
+            dtime: row[1],
+            dateString: row[2],
+            temperature: row[3]
+        }
+        data.push (o);
       });
       
       stream.on ('error', function (err) {
@@ -75,7 +81,7 @@ app.get('/temperature', function(req, res){
         //(rows.length === stream.supplemental.rows);
         // how many rows in result are set without windowing:
         //console.log ('rows in result set', stream.supplemental.rows_before_limit_at_least);
-        res.send(JSON.stringify(rows));
+        res.send(JSON.stringify(data));
         
       });
 
