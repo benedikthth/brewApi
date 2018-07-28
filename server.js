@@ -75,7 +75,7 @@ app.get('/temperature', function(req, res){
         //(rows.length === stream.supplemental.rows);
         // how many rows in result are set without windowing:
         //console.log ('rows in result set', stream.supplemental.rows_before_limit_at_least);
-        res.send(rows);
+        res.send(JSON.stringify(rows));
         
       });
 
