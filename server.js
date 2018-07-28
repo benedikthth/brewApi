@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var express = require("express");
 var bodyParser = require("body-parser");
 var app = express();
@@ -65,6 +67,8 @@ app.get('/temperature', function(req, res){
       stream.on ('error', function (err) {
         // TODO: handler error
         console.log('ERROR: ');
+        console.log(err);
+        
         res.send('error');
       });
       
