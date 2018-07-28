@@ -57,7 +57,7 @@ app.get('/temperature', function(req, res){
     //select * from brewApi_temperatures order by dtime desc limit 60
 
     //max 144 rows. this means that we'll only get 3days worth of data
-    var stream = ch.query (`SELECT * FROM ${brewApiTemperatures} orderby dtime desc limit 144`);
+    var stream = ch.query (`SELECT * FROM ${brewApiTemperatures} order by dtime desc limit 144`);
     let rows = [];
     
     stream.on ('data', function (row) {
