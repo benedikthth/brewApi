@@ -11,7 +11,7 @@ var Clickhouse = require('@apla/clickhouse');
 var mqttHandler = require('./MqttHandler');
 
 
-var ch = new Clickhouse('192.168.1.101');
+var ch = new Clickhouse('localhost');//'192.168.1.101');
 
 //name of table.
 const brewApiTemperatures = 'brewApi_temperatures';
