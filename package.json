@@ -1,0 +1,26 @@
+{
+  "name": "brewapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benedikthth/brewApi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/benedikthth/brewApi/issues"
+  },
+  "homepage": "https://github.com/benedikthth/brewApi#readme",
+  "dependencies": {
+    "@apla/clickhouse": "^1.5.3",
+    "express": "^4.16.3",
+    "mongodb": "^3.1.1",
+    "mqtt": "^2.18.3"
+  }
+}
