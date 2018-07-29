@@ -11,11 +11,11 @@ var Clickhouse = require('@apla/clickhouse');
 var mqttHandler = require('./MqttHandler');
 
 
-var ch = new Clickhouse('localhost');//'192.168.1.101');
+var ch = new Clickhouse('192.168.1.101');//'192.168.1.101');
 
 //name of table.
-const brewApiTemperatures = 'brewApi_temperatures';
-
+const tempTable = 'brewApi_temperatures';
+const co2Table = 'brewApi_co';
 
 // Connection URL
 
@@ -24,14 +24,16 @@ const brewApiTemperatures = 'brewApi_temperatures';
 var messageEvent = function(topic, msg) {
 
 
-    let datet = "" + new Date().toISOString().replace('T', ' ').replace('Z', '');
-    let date = datet.split(' ')[0];
-    console.log(date, typeof date);
     let table = '';
+    let varname = ''
     if (topic === '/brewApi/temperature'){
-        table = brewApiTemperatures;
+        table = tempTable;
+        varname = 'temperature'
+    } else if ( topic === '/brewApi/co2'){
+        table = co2Table;
+        varname = 'level'
     }
-    let query = `INSERT INTO ${table} (temperature) VALUES ( ${msg} )`;
+    let query = `INSERT INTO ${table} (${varname}) VALUES ( ${msg} )`;
 
     ch.query ( query , function (err, data) {
         console.log(err);
@@ -55,9 +57,28 @@ app.get('/temperature', function(req, res){
     //select * from brewApi_temperatures order by dtime desc limit 60
 
     //max 144 rows. this means that we'll only get 3days worth of data
-    var stream = ch.query (`SELECT * FROM ${brewApiTemperatures} order by dtime desc limit 144`);
-    let data = [];
+    var stream = ch.query (`SELECT (dtime, temperature) FROM ${tempTable} order by dtime desc limit 144`);
     
+    let metadata;
+
+    stream.on('metadata', data => (metadata = data));
+
+    res.write('[');
+
+    stream.on('data', data => res.write(JSON.stringify(data)));
+
+    stream.on ('error', function (err) {
+        // TODO: handler error
+        console.log('ERROR: ');
+        console.log(err);
+        
+        //res.send('error');
+      });
+    
+    stream.on('end', ()=> res.end(']'));
+    
+    //let data = [];
+    /*
     stream.on ('data', function (row) {
         //[time, dtime, dateString, temperature];
         let o = {
@@ -83,7 +104,9 @@ app.get('/temperature', function(req, res){
         res.send(JSON.stringify(data));
         
       });
+      */
 
+    
 });
 
 var server = app.listen(9099, function () {
