@@ -63,7 +63,7 @@ app.get('/temperature', function(req, res){
 
     const limit = req.query.limit || 96;
     //max 144 rows. this means that we'll only get 3days worth of data
-    var stream = ch.query (`SELECT toStartOfFifteenMinutes(dtime) as dtime, temperature FROM ${tempTable} order by dtime desc limit ${limit}`);
+    var stream = ch.query (`SELECT toStartOfMinute(dtime) as dtime, temperature FROM ${tempTable} order by dtime desc limit ${limit}`);
     
 
     res.write('[');
