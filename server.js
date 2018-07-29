@@ -63,13 +63,19 @@ app.get('/temperature', function(req, res){
 
     //const limit = req.query.limit || 96;
     //should be in hours....
-    const hourLimit = req.query.hourLimit || 24 * 7; // one week.
-    const secondsofDelay = hourLimit * 60 * 60;
+    const hourLimit = req.query.hourLimit || null; // one week.
+    let whereClause = ""; 
+    
+    if(hourLimit !== null){
+        const secondsofDelay = hourLimit * 60 * 60;
+        whereClause = `WHERE dtime >= ( minus(now(), ${secondsofDelay}))`
+    }
+
     //max 144 rows. this means that we'll only get 3days worth of data
     //var stream = ch.query (`SELECT toStartOfMinute(dtime) as dtime, temperature FROM ${tempTable} order by dtime desc limit ${limit}`);
     var stream = ch.query (`SELECT toStartOfMinute(dtime) AS dtime, temperature 
                             FROM ${tempTable} 
-                            WHERE dtime >= ( minus(now(), ${secondsofDelay}))
+                            ${whereClause}
                             ORDER BY dtime desc `
                             );
     
