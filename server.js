@@ -11,7 +11,9 @@ var Clickhouse = require('@apla/clickhouse');
 var mqttHandler = require('./MqttHandler');
 
 
-var ch = new Clickhouse('192.168.1.101');//'192.168.1.101');
+var ch = new Clickhouse('192.168.1.101', {
+    dataObjects: true
+});//'192.168.1.101');
 
 //name of table.
 const tempTable = 'brewApi_temperatures';
@@ -36,7 +38,9 @@ var messageEvent = function(topic, msg) {
     let query = `INSERT INTO ${table} (${varname}) VALUES ( ${msg} )`;
 
     ch.query ( query , function (err, data) {
-        console.log(err);
+
+        //todo:! 
+        //console.log(err);
     });
 
 }
@@ -56,23 +60,42 @@ app.post("/send-mqtt", function(req, res) {
 app.get('/temperature', function(req, res){
     //select * from brewApi_temperatures order by dtime desc limit 60
 
-    //max 144 rows. this means that we'll only get 3days worth of data
-    var stream = ch.query (`SELECT (dtime, temperature) FROM ${tempTable} order by dtime desc limit 144`);
-    
-    let metadata;
 
-    stream.on('metadata', data => (metadata = data));
+    const limit = req.query.limit || 96;
+    //max 144 rows. this means that we'll only get 3days worth of data
+    var stream = ch.query (`SELECT toStartOfFifteenMinutes(dtime) as dtime, temperature FROM ${tempTable} order by dtime desc limit ${limit}`);
+    
 
     res.write('[');
 
+    let metadata;
+    stream.on('metadata', data => (metadata = data.map(d => d.name)));
+
+    let first = true;
     stream.on('data', data => {
+
+        const o = metadata.reduce((p, k, i)=> {
+            p[k] = data[i];
+            return p;
+        }, {});
         
-        let o = {
-            dtime: data[0][0],
-            temperature: data[0][1]
-        }
-        res.write(JSON.stringify(o) + ', ');
+        res.write((first ? '' : ', ') + JSON.stringify(o));
+        first = false;
     });
+
+    // Array.prototype.reduce = function(reducer, initial) {
+    //     for (let i = 0; i < this.length; ++i) {
+    //         initial = reducer(initial, this[i], i, this);
+    //     }
+    //     return initial;
+    // }
+
+    // Array.prototype.map = function(fn) {
+    //     return this.reduce((accumulated, value)=> {
+    //         accumulated.push(fn(value));
+    //         return accumulated        
+    //     }, [])
+    // }
 
     stream.on ('error', function (err) {
         // TODO: handler error
@@ -82,7 +105,7 @@ app.get('/temperature', function(req, res){
         //res.send('error');
     });
     
-    stream.on('end', ()=> res.end('null ]'));
+    stream.on('end', ()=> res.end(']'));
     
     //let data = [];
     /*
