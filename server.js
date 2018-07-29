@@ -65,7 +65,14 @@ app.get('/temperature', function(req, res){
 
     res.write('[');
 
-    stream.on('data', data => res.write(JSON.stringify(data) + ', '));
+    stream.on('data', data => {
+        let o = {
+            dtime: row[0],
+            temperature: row[1]
+        }
+        data.push (o);
+        res.write(JSON.stringify(o) + ', ');
+    });
 
     stream.on ('error', function (err) {
         // TODO: handler error
