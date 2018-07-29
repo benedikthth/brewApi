@@ -70,7 +70,6 @@ app.get('/temperature', function(req, res){
             dtime: row[0],
             temperature: row[1]
         }
-        data.push (o);
         res.write(JSON.stringify(o) + ', ');
     });
 
