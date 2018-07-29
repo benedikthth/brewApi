@@ -65,7 +65,7 @@ app.get('/temperature', function(req, res){
 
     res.write('[');
 
-    stream.on('data', data => res.write(JSON.stringify(data)));
+    stream.on('data', data => res.write(JSON.stringify(data) + ', '));
 
     stream.on ('error', function (err) {
         // TODO: handler error
@@ -73,9 +73,9 @@ app.get('/temperature', function(req, res){
         console.log(err);
         
         //res.send('error');
-      });
+    });
     
-    stream.on('end', ()=> res.end(']'));
+    stream.on('end', ()=> res.end('null ]'));
     
     //let data = [];
     /*
