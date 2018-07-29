@@ -61,9 +61,17 @@ app.get('/temperature', function(req, res){
     //select * from brewApi_temperatures order by dtime desc limit 60
 
 
-    const limit = req.query.limit || 96;
+    //const limit = req.query.limit || 96;
+    //should be in hours....
+    const dateLimit = req.query.dateLimit || 24 * 7; // one week.
+    const secondsofDelay = dateLimit * 60 * 60;
     //max 144 rows. this means that we'll only get 3days worth of data
-    var stream = ch.query (`SELECT toStartOfMinute(dtime) as dtime, temperature FROM ${tempTable} order by dtime desc limit ${limit}`);
+    //var stream = ch.query (`SELECT toStartOfMinute(dtime) as dtime, temperature FROM ${tempTable} order by dtime desc limit ${limit}`);
+    var stream = ch.query (`SELECT toStartOfMinute(dtime) AS dtime, temperature 
+                            FROM ${tempTable} 
+                            WHERE dtime >= ( minus(now(), ${secondsofDelay}))
+                            ORDER BY dtime desc `
+                            );
     
 
     res.write('[');
@@ -83,20 +91,6 @@ app.get('/temperature', function(req, res){
         first = false;
     });
 
-    // Array.prototype.reduce = function(reducer, initial) {
-    //     for (let i = 0; i < this.length; ++i) {
-    //         initial = reducer(initial, this[i], i, this);
-    //     }
-    //     return initial;
-    // }
-
-    // Array.prototype.map = function(fn) {
-    //     return this.reduce((accumulated, value)=> {
-    //         accumulated.push(fn(value));
-    //         return accumulated        
-    //     }, [])
-    // }
-
     stream.on ('error', function (err) {
         // TODO: handler error
         console.log('ERROR: ');
@@ -106,36 +100,6 @@ app.get('/temperature', function(req, res){
     });
     
     stream.on('end', ()=> res.end(']'));
-    
-    //let data = [];
-    /*
-    stream.on ('data', function (row) {
-        //[time, dtime, dateString, temperature];
-        let o = {
-            dtime: row[1],
-            temperature: row[2]
-        }
-        data.push (o);
-      });
-      
-      stream.on ('error', function (err) {
-        // TODO: handler error
-        console.log('ERROR: ');
-        console.log(err);
-        
-        res.send('error');
-      });
-      
-      stream.on ('end', function () {
-        // all rows are collected, let's verify count
-        //(rows.length === stream.supplemental.rows);
-        // how many rows in result are set without windowing:
-        //console.log ('rows in result set', stream.supplemental.rows_before_limit_at_least);
-        res.send(JSON.stringify(data));
-        
-      });
-      */
-
     
 });
 
