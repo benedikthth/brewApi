@@ -67,8 +67,8 @@ app.get('/temperature', function(req, res){
 
     stream.on('data', data => {
         let o = {
-            dtime: row[0],
-            temperature: row[1]
+            dtime: data[0],
+            temperature: data[1]
         }
         res.write(JSON.stringify(o) + ', ');
     });
