@@ -17,7 +17,7 @@ var ch = new Clickhouse('192.168.1.101', {
 
 //name of table.
 const tempTable = 'brewApi_temperatures';
-const co2Table = 'brewApi_co';
+const co2Table = 'brewApi_co';  
 
 // Connection URL
 
@@ -107,6 +107,54 @@ app.get('/temperature', function(req, res){
     
     stream.on('end', ()=> res.end(']'));
     
+});
+
+app.get('/temperature/average', function(req, res){
+
+    const hourLimit = req.query.hourLimit || null; // one week.
+    let whereClause = ""; 
+    
+    if(hourLimit !== null){
+        const secondsofDelay = hourLimit * 60 * 60;
+        whereClause = `WHERE dtime >= ( minus(now(), ${secondsofDelay}))`
+    }
+    let query = `
+    SELECT avg(temperature) as avg
+    FROM brewApi_temperatures
+    ${whereClause}
+    `
+
+    let stream = ch.query(query);
+
+    //res.write('[');
+
+    let metadata;
+    stream.on('metadata', data => (metadata = data.map(d => d.name)));
+
+    //let first = true;
+    stream.on('data', data => {
+
+        const o = metadata.reduce((p, k, i)=> {
+            p[k] = data[i];
+            return p;
+        }, {});
+        
+        //res.write((first ? '' : ', ') + JSON.stringify(o));
+        res.write(JSON.stringify(o));
+        first = false;
+    });
+
+    stream.on ('error', function (err) {
+        // TODO: handler error
+        console.log('ERROR: ');
+        console.log(err);
+        
+        //res.send('error');
+    });
+    
+    stream.on('end', ()=> res.end());
+
+
 });
 
 var server = app.listen(9099, function () {

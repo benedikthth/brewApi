@@ -1,0 +1,1 @@
+create table brewApi_temperatures ( time Date default toDate(now()), dtime DateTime default now(), temperature Float32 ) ENGINE = MergeTree(time, (time), 8012)
