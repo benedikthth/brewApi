@@ -157,6 +157,57 @@ app.get('/temperature/average', function(req, res){
 
 });
 
+app.get('/temperature/regression', (req, res)=>{
+
+    let whereClause = `where dtime > (now() - (60*60*2))`;
+    const minuteLimit = req.query.minuteLimit || null; // one week.
+    
+    if(minuteLimit !== null){
+        const secondsofDelay = minuteLimit * 60;
+        whereClause = `WHERE dtime >= ( minus(now(), ${secondsofDelay}))`
+    }
+
+    let query = `
+    select corr(toRelativeSecondNum(dtime), temperature) as corr,
+           stddevSamp(temperature)  as stddevY,
+           stddevSamp(toRelativeSecondNum(dtime))  as stddevX,
+           avg(toRelativeSecondNum(dtime)) as meanX,
+           avg(temperature) as meanY,
+           min(toRelativeSecondNum(dtime)) as minX
+    FROM (select * from brewApi_temperatures 
+    ${whereClause})`
+    //stddevSamp(temperature)  as stddevY from (select temperature from brewApi_temperatures where dtime > (now() - (60*60) ) ) ,
+    let stream = ch.query(query);
+
+    let metadata;
+    stream.on('metadata', data => (metadata = data.map(d => d.name)));
+
+    //let first = true;
+    stream.on('data', data => {
+
+        const o = metadata.reduce((p, k, i)=> {
+            p[k] = data[i];
+            return p;
+        }, {});
+        
+        //res.write((first ? '' : ', ') + JSON.stringify(o));
+        res.write(JSON.stringify(o));
+        first = false;
+    });
+
+    stream.on ('error', function (err) {
+        // TODO: handler error
+        console.log('ERROR: ');
+        console.log(err);
+        
+        //res.send('error');
+    });
+    
+    stream.on('end', ()=> res.end());
+    
+
+})
+
 var server = app.listen(9099, function () {
     console.log("app running on port.", server.address().port);
 });
