@@ -11,7 +11,7 @@ var Clickhouse = require('@apla/clickhouse');
 var mqttHandler = require('./MqttHandler');
 
 
-var ch = new Clickhouse('192.168.1.101', {
+var ch = new Clickhouse('localhost', {
     dataObjects: true
 });//'192.168.1.101');
 
