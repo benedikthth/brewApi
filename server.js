@@ -59,7 +59,7 @@ app.post("/send-mqtt", function(req, res) {
 
 app.get('/temperature', function(req, res){
     //select * from brewApi_temperatures order by dtime desc limit 60
-
+    res.header('Access-Control-Allow-Origin' , "brew.spock.is");
 
     //const limit = req.query.limit || 96;
     //should be in hours....
